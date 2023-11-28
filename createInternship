@@ -115,4 +115,3 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/internship'
-        $ref: '#/components/schemas/internship'
