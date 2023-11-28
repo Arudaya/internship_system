@@ -8,7 +8,7 @@ servers:
 tags:
   - name: Internships
     description: Операции со Стажировками
-
+  
 paths:
   /internships:
     post:
@@ -16,6 +16,8 @@ paths:
       tags:
         - Internships
       operationId: createInternship
+      security:
+        - Authorization: []
       requestBody:
         required: true
         content:
@@ -47,17 +49,22 @@ paths:
                   example: Стажировка такого-то блока
       responses:
         '201':
-          description: Internship created
+          description: Стажировка успешно создана
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/internship'
         '400':
-          description: Invalid parameter values
+          description: Неверные параметры запроса
         '403':
-          description: Don't have permission to perform this operation
-
+          description: Нет прав на совершение этой операции
+          
 components:
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     internship: #стажировка
       type: object
@@ -84,16 +91,16 @@ components:
           description: Состояние стажировки
         reqruitmentFirstDate:
           type: string
-          format: date
+          format: 2023-07-01T15:00:00:01
         reqruitmentLastDate:
           type: string
-          format: date
+          format: 2023-07-01T15:00:00:01
         startDate:
           type: string
-          format: date
+          format: 2023-07-01T15:00:00:01
         finishDate:
           type: string
-          format: date
+          format: 2023-07-01T15:00:00:01
         description:
           type: string
           example: Стажировка такого-то блока
@@ -107,4 +114,5 @@ components:
     internships: #стажировки
       type: array
       items:
+        $ref: '#/components/schemas/internship'
         $ref: '#/components/schemas/internship'
