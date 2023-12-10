@@ -1,0 +1,461 @@
+openapi: 3.0.0
+info:
+  title: Система Стажировок OpenAPI спецификация
+  version: 1.0.0
+servers:
+  - url: http://internships.digitalleague/api/
+    description: Dev server
+tags:
+  - name: Internships
+    description: Операции со Стажировками
+  - name: Requests
+    description: Операции с Заявками
+  - name: Interns
+    description: Операции со Стажёрами
+  - name: Staffs
+    description: Операции с Сотрудниками
+  - name: Modules
+    description: Операции с Разделами
+  - name: requestForm
+    description: Операции с Формами заявок
+  - name: Lesson
+    description: Операции с Лекциями
+  
+paths:
+  /internships:
+    get:
+        summary: Метод получения списка Стажировок для неавторизованного пользователя     
+        description: Метод предназначен для получения списка Стажировок, на которые можно подать Заявку.
+        operationId: listInternshipsForUnauthorized
+        tags:
+          - Internships
+        parameters:
+          - name: status
+            in: query
+            required: true
+            description: Статус Стажировки 
+            schema:
+              type: string
+              enum:
+                - FUTURE
+        responses:
+          '200':
+            description: Сценарий успешно выполнен
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - reqruitmentFirstDate
+                      - reqruitmentLastDate
+                      - startDate
+                      - finishDate
+                      - status
+                      - recrStatus
+                    properties:
+                      internship_id:
+                        type: integer
+                      name:
+                        type: string
+                        example: ИТ-анализ
+                      status:
+                        type: string
+                        enum:
+                          - FUTURE
+                      reqruitmentFirstDate:
+                        type: string
+                        format: 2023-07-01T15:00:00:01
+                      reqruitmentLastDate:
+                        type: string
+                        format: 2023-07-01T15:00:00:01
+                      startDate:
+                        type: string
+                        format: 2023-07-01T15:00:00:01
+                      finishDate:
+                        type: string
+                        format: 2023-07-01T15:00:00:01
+                      description:
+                        type: string
+                        example: Стажировка такого-то блока
+                      recrStatus:
+                        type: string
+                        enum:
+                          - in progress
+          '400':
+            description: Неверный запрос.
+          '401':
+            description: Пользователь неавторизован.
+          '403':
+            description: Запрет доступа.
+            
+    post:
+      summary: Метод создания Стажировки
+      tags:
+        - Internships
+      operationId: createInternship
+      security:
+        - Authorization: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Системная аналитика
+                reqruitmentFirstDate:
+                   type: string
+                   format: date
+                   example: "2021-01-30"
+                reqruitmentLastDate:
+                    type: string
+                    format: date
+                    example: "2021-01-30"
+                startDate:
+                  type: string
+                  format: date
+                  example: "2021-01-30"
+                finishDate:
+                  type: string
+                  format: date
+                  example: "2021-01-30"
+                description:
+                  type: string
+                  example: Стажировка такого-то блока
+      responses:
+        '201':
+          description: Стажировка успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/internship'
+        '400':
+          description: Неверные параметры запроса
+        '403':
+          description: Нет прав на совершение этой операции        
+          
+  /internships/findByStatus:
+    get:
+        summary: Метод получения списка Стажировок для Администратора     
+        description: Метод предназначен для получения списка Стажировок из БД.
+        operationId: listInternships
+        security:
+        - Authorization: []
+        tags:
+          - Internships
+        parameters:
+          - name: status
+            in: query
+            required: true
+            description: Статус Стажировки
+            schema:
+              type: string
+              enum:
+                - FUTURE
+                - IN PROGRESS
+                - ARCHIVED
+        responses:
+          '200':
+            description: Стажировка
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/internships"
+          '400':
+            description: Неверный запрос.
+          '401':
+            description: Пользователь неавторизован.
+          '403':
+            description: Запрет доступа.
+            
+  /internships/{internship_id}:
+    get:
+      summary: Метод получения стажировки по идентификатору
+      tags:
+        - Internships
+      operationId: getInternshipById
+      security:
+        - Authorization: []
+      parameters:
+        - name: internship_id
+          in: path
+          required: true
+          description: Идентификатор стажировки
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/internship'
+        '400':
+          description: Неверный запрос.
+        '401':
+          description: Пользователь неавторизован.
+        '403':
+          description: Запрет доступа.
+        '404':
+          description: Стажировка не найдена.
+    patch:
+      summary: Метод редактирования данных Стажировки
+      tags: 
+        - Internships
+      operationId: updateInternship
+      security:
+        - Authorization: []
+      parameters:
+        - name: internship_id
+          in: path
+          required: true
+          description: Идентификатор стажировки
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Системная аналитика
+                reqruitmentFirstDate:
+                   type: string
+                   format: 2023-07-01T15:00:00:01
+                reqruitmentLastDate:
+                    type: string
+                    format: 2023-07-01T15:00:00:01
+                startDate:
+                  type: string
+                  format: 2023-07-01T15:00:00:01
+                finishDate:
+                  type: string
+                  format: 2023-07-01T15:00:00:01
+                description:
+                  type: string
+                  example: Стажировка такого-то блока
+      responses:
+        '200':
+          description: Данные Стажировки успешно отредактированы
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/internship'
+    delete:
+      summary: Метод удаления Стажировки
+      tags:
+        - Internships
+      operationId: deletelInternshipById
+      security:
+        - Authorization: []
+      parameters:
+        - name: internship_id
+          in: path
+          required: true
+          description: Идентификатор стажировки
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Успешное удаление
+          content:
+            application/json: {} 
+      
+    
+components:
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    internship: #стажировка
+      type: object
+      required:
+        - name
+        - reqruitmentFirstDate
+        - reqruitmentLastDate
+        - startDate
+        - finishDate
+        - status
+        - recrStatus
+      properties:
+        internship_id:
+          type: integer
+        name:
+          type: string
+          example: ИТ-анализ
+        status:
+          type: string
+          enum:
+            - FUTURE
+            - IN PROGRESS
+            - ARCHIVED
+          description: Статус стажировки
+        reqruitmentFirstDate:
+          type: string
+          format: 2023-07-01T15:00:00:01
+        reqruitmentLastDate:
+          type: string
+          format: 2023-07-01T15:00:00:01
+        startDate:
+          type: string
+          format: 2023-07-01T15:00:00:01
+        finishDate:
+          type: string
+          format: 2023-07-01T15:00:00:01
+        description:
+          type: string
+          example: Стажировка такого-то блока
+        recrStatus:
+          type: string
+          enum:
+            - not_possible
+            - awaiting
+            - in progress
+            - stopped
+        lead:
+          type: string
+        program:
+          type: boolean
+          example: no
+    internships: #стажировки
+      type: array
+      items:
+        $ref: '#/components/schemas/internship'
+    announcement: #анонс стажировки
+      type: object
+      required:
+        - description
+        - intership_id
+      properties:
+        announcement_id:
+          type: string
+        description:
+          type: string
+          example: Описание стажировки
+        intership_id: 
+          $ref: '#/components/schemas/internship/properties/internship_id'
+    announcements: #анонсы стажировок
+      type: array
+      items:
+        $ref: '#/components/schemas/announcement'
+    answer: #ответ стажёров на задания
+      type: object
+      required:
+        - textAnswer
+        - taskId
+        - internId
+        - intership_id
+      properties:
+        task_id:
+          $ref: '#/components/schemas/task/properties/task_id'
+        intern_id:
+          $ref: '#/components/schemas/intern/properties/intern_id'
+    answers: 
+      type: array
+      items:
+        $ref: '#/components/schemas/answer'
+    file: #учебный материал
+      type: object
+    files: #учебные материалы
+      type: array
+      items:
+        $ref: '#/components/schemas/files'
+    intern: #стажёр
+      type: object
+      required:
+        - intern_id
+        - intership_id
+      properties:
+        intern_id:
+          type: string
+          
+    interns: #стажёры
+      type: array
+      items:
+        $ref: '#/components/schemas/intern'
+    lesson: #лекции
+      type: object
+      required:
+        - title
+        - module_id
+      properties:
+        lesson_id:
+          type: string
+        title:
+          type: string
+        module_id: 
+          $ref: '#/components/schemas/module/properties/module_id'
+    lessons: #лекции
+      type: array
+      items:
+        $ref: '#/components/schemas/lesson'
+    mark: #оценка заданий стажёров
+      type: object
+    marks: #оценки заданий стажёров
+      type: array
+      items:
+        $ref: '#/components/schemas/mark'
+    module: #раздел в программе стажировки
+      type: object
+      required:
+        - title
+        - priority
+      properties:
+        module_id:
+          type: string
+        priority:
+          type: integer
+        title:
+          type: string
+    modules: #разделы в программе стажировки
+      type: array
+      items:
+        $ref: '#/components/schemas/module'
+    requestForm: #вопрос для формы заявки
+      type: object
+    allRequestForm:
+      type: array
+      items:
+        $ref: '#/components/schemas/requestForm'
+    request: #заявка  
+      type: object
+    requests: #заявки
+      type: array
+      items:
+        $ref: '#/components/schemas/request'
+    staff: #сотрудник
+      type: object
+    staffs: #сотрудники
+      type: array
+      items:
+        $ref: '#/components/schemas/staff'
+    task: #задание
+      type: object
+      required:
+        - task_id
+        - lesson_id
+        - title
+      properties:
+        task_id:
+          type: string
+        lesson_id:
+          $ref: '#/components/schemas/lesson/properties/lesson_id'
+        title:
+          type: string
+        description:
+          type: string
+    tasks: #задания
+      type: array
+      items:
+        $ref: '#/components/schemas/task'
